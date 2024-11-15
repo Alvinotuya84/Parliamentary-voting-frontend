@@ -33,14 +33,14 @@ export const useAudioRecorder = () => {
           noiseSuppression: true,
           autoGainControl: true,
           channelCount: 1,
-          sampleRate: 16000,
+          sampleRate: 48000,
         },
       });
 
       streamRef.current = stream;
       audioChunks.current = [];
 
-      const recorder = new MediaRecorder(stream);
+      const recorder = new MediaRecorder(stream, {});
 
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) {

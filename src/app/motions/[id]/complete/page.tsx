@@ -5,26 +5,31 @@ import { api } from "@/lib/axios";
 import { MotionResults } from "@/components/motions/motion-results";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { use } from "react";
 
 export default function MotionCompletePage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const unwrappedParams = use(params);
+
   const router = useRouter();
 
   const { data: motion } = useQuery({
-    queryKey: ["motion", params.id],
+    queryKey: ["motion", unwrappedParams.id],
     queryFn: async () => {
-      const response = await api.get(`/motions/${params.id}`);
+      const response = await api.get(`/motions/${unwrappedParams.id}`);
       return response.data;
     },
   });
 
   const { data: stats } = useQuery({
-    queryKey: ["vote-stats", params.id],
+    queryKey: ["vote-stats", unwrappedParams.id],
     queryFn: async () => {
-      const response = await api.get(`/voting/statistics/${params.id}`);
+      const response = await api.get(
+        `/voting/statistics/${unwrappedParams.id}`
+      );
       return response.data;
     },
   });

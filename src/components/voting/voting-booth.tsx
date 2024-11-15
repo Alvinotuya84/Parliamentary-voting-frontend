@@ -1,3 +1,4 @@
+// src/components/voting/voting-booth.tsx
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -20,9 +21,11 @@ interface VotingBoothProps {
 export function VotingBooth({ motionId, onVoteComplete }: VotingBoothProps) {
   const [progress, setProgress] = useState(0);
   const [verificationResult, setVerificationResult] = useState<any>(null);
+  const [isAnnouncing, setIsAnnouncing] = useState(false);
   const progressInterval = useRef<NodeJS.Timeout>();
   const recordingTimeout = useRef<NodeJS.Timeout>();
   const startTimeRef = useRef<number | null>(null);
+  const autoStartRef = useRef<boolean>(false);
 
   const { toast } = useToast();
   const { isRecording, startRecording, stopRecording, cleanup } =
@@ -30,7 +33,8 @@ export function VotingBooth({ motionId, onVoteComplete }: VotingBoothProps) {
   const { isVotingActive } = useMotionStore();
   const { activeMember } = useSessionStore();
 
-  const RECORDING_DURATION = 5000; // 5 seconds for vote
+  const RECORDING_DURATION = 5000;
+  const ANNOUNCEMENT_DURATION = 3000;
 
   const clearTimers = () => {
     if (progressInterval.current) {
@@ -41,6 +45,24 @@ export function VotingBooth({ motionId, onVoteComplete }: VotingBoothProps) {
       clearTimeout(recordingTimeout.current);
       recordingTimeout.current = undefined;
     }
+  };
+
+  const announceCurrentSpeaker = () => {
+    if (!activeMember) return;
+
+    setIsAnnouncing(true);
+    const speech = new SpeechSynthesisUtterance(
+      `${activeMember.name}, please cast your vote`
+    );
+
+    speech.onend = () => {
+      setIsAnnouncing(false);
+      if (autoStartRef.current) {
+        handleStartVoting();
+      }
+    };
+
+    window.speechSynthesis.speak(speech);
   };
 
   const handleStartVoting = async () => {
@@ -88,17 +110,21 @@ export function VotingBooth({ motionId, onVoteComplete }: VotingBoothProps) {
           memberId: activeMember.id,
         });
 
-        setVerificationResult(response.data.verification);
+        setVerificationResult({
+          text: "Vote recorded successfully",
+          vote: response.data.vote,
+        });
 
         toast({
           title: "Vote Recorded",
-          description: `Vote: ${response.data.vote.vote} (Confidence: ${(
-            response.data.verification.confidence * 100
-          ).toFixed(1)}%)`,
+          description: `Vote: ${response.data.vote}`,
         });
+
+        console.log(response);
 
         onVoteComplete();
       } catch (error: any) {
+        console.log(error);
         toast({
           title: "Error",
           description:
@@ -108,6 +134,16 @@ export function VotingBooth({ motionId, onVoteComplete }: VotingBoothProps) {
       }
     }
   };
+
+  useEffect(() => {
+    if (activeMember && isVotingActive && !isRecording && !isAnnouncing) {
+      autoStartRef.current = true;
+      announceCurrentSpeaker();
+    }
+    return () => {
+      autoStartRef.current = false;
+    };
+  }, [activeMember, isVotingActive]);
 
   useEffect(() => {
     return () => {
@@ -124,6 +160,14 @@ export function VotingBooth({ motionId, onVoteComplete }: VotingBoothProps) {
       <CardContent className="space-y-4">
         {activeMember ? (
           <>
+            {isAnnouncing && (
+              <Alert>
+                <AlertDescription>
+                  Announcing: {activeMember.name}...
+                </AlertDescription>
+              </Alert>
+            )}
+
             {isRecording && (
               <div className="space-y-2">
                 <Progress value={progress} />
@@ -142,7 +186,7 @@ export function VotingBooth({ motionId, onVoteComplete }: VotingBoothProps) {
               </div>
               <Button
                 onClick={isRecording ? handleStopVoting : handleStartVoting}
-                disabled={!isVotingActive}
+                disabled={!isVotingActive || isAnnouncing}
                 variant={isRecording ? "destructive" : "default"}
               >
                 {isRecording ? (
@@ -173,9 +217,7 @@ export function VotingBooth({ motionId, onVoteComplete }: VotingBoothProps) {
           </>
         ) : (
           <Alert>
-            <AlertDescription>
-              Please select a member to begin voting.
-            </AlertDescription>
+            <AlertDescription>Waiting for next member...</AlertDescription>
           </Alert>
         )}
       </CardContent>

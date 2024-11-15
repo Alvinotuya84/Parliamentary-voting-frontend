@@ -19,6 +19,7 @@ import { useVoice } from "@/hooks/use-voice";
 import { useSessionStore } from "../../../stores/session-store";
 import { useMotionStore } from "../../../stores/motion-store";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 interface MotionCardProps {
   motion: Motion;
@@ -31,6 +32,7 @@ export function MotionCard({ motion }: MotionCardProps) {
   const { startRecording, stopRecording } = useVoice();
   const { castVote } = useVoting();
   const { toast } = useToast();
+  const router = useRouter();
 
   const handleVoteStart = async () => {
     if (!activeMember) {
@@ -56,11 +58,13 @@ export function MotionCard({ motion }: MotionCardProps) {
       });
     }
   };
-
+  const handleClick = () => {
+    router.push(`/motions/${motion.id}`);
+  };
   const canVote = isVotingActive && activeMember && motion.status === "active";
 
   return (
-    <Card>
+    <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleClick}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="line-clamp-1">{motion.title}</CardTitle>

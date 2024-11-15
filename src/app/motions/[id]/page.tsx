@@ -9,22 +9,24 @@ import { VotingBooth } from "@/components/voting/voting-booth";
 import { Button } from "@/components/ui/button";
 import { useMotionStore } from "../../../../stores/motion-store";
 import { useSessionStore } from "../../../../stores/session-store";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
+import { use } from "react";
 
 export default function MotionVotingPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
   const { isVotingActive, setVotingActive } = useMotionStore();
   const { setActiveMember, clearVotedMembers } = useSessionStore();
+  const unwrappedParams = use(params);
 
   const { data: motion } = useQuery({
-    queryKey: ["motion", params.id],
+    queryKey: ["motion", unwrappedParams.id],
     queryFn: async () => {
-      const response = await api.get(`/motions/${params.id}`);
+      const response = await api.get(`/motions/${unwrappedParams.id}`);
       return response.data;
     },
   });
@@ -54,8 +56,10 @@ export default function MotionVotingPage({
   const handleCompleteVoting = async () => {
     handleVoteComplete();
     try {
-      await api.put(`/motions/${params.id}/status`, { status: "completed" });
-      router.push(`/motions/${params.id}/complete`);
+      await api.put(`/motions/${unwrappedParams.id}/status`, {
+        status: "completed",
+      });
+      router.push(`/motions/${unwrappedParams.id}/complete`);
     } catch (error) {
       toast({
         title: "Error",
@@ -86,10 +90,10 @@ export default function MotionVotingPage({
         <div className="col-span-8 space-y-6">
           <VotingStatus />
           <VotingBooth
-            motionId={params.id}
+            motionId={unwrappedParams.id}
             onVoteComplete={handleCompleteVoting}
           />
-          <VoteVisualizer motionId={params.id} />
+          <VoteVisualizer motionId={unwrappedParams.id} />
         </div>
         <div className="col-span-4">
           <MemberQueue members={members} />
