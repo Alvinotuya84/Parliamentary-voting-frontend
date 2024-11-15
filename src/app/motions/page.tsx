@@ -7,13 +7,7 @@ import { Motion } from "@/types";
 import { MotionCard } from "@/components/motions/motion-card";
 import { MotionList } from "@/components/motions/motion-list";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CreateMotionDialog } from "@/components/motions/create-motion-dialog";
 
 export default function MotionsPage() {
   const [view, setView] = useState<"list" | "grid">("grid");
@@ -40,6 +34,7 @@ export default function MotionsPage() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
+          <CreateMotionDialog />
           <Button
             variant={view === "grid" ? "default" : "outline"}
             onClick={() => setView("grid")}

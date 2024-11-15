@@ -6,6 +6,7 @@ export interface Member {
   isActive: boolean;
 }
 
+// src/types/index.ts
 export interface Motion {
   id: string;
   title: string;
@@ -18,8 +19,8 @@ export interface Motion {
 
 export interface Vote {
   id: string;
-  member: Member;
-  motion: Motion;
+  memberId: string;
+  motionId: string;
   vote: "yes" | "no";
   timestamp: Date;
   voiceRecording?: string;
@@ -29,6 +30,7 @@ export interface VoteStatistics {
   total: number;
   yes: number;
   no: number;
+  totalMembers: number;
   byConstituency: {
     [key: string]: {
       yes: number;
