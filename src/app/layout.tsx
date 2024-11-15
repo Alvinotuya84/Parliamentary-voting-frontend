@@ -1,10 +1,12 @@
+"use client";
+
 import { MainNav } from "@/components/layout/main-nav";
 import { UserNav } from "@/components/layout/user-nav";
 import { Toaster } from "@/components/ui/toaster";
-
 import localFont from "next/font/local";
 import "./globals.css";
 import { Providers } from "@/providers";
+import { Sidebar } from "@/components/layout/sidebar";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -28,20 +30,23 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <div className="flex min-h-screen flex-col">
-            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <div className="container flex h-14 items-center">
-                <MainNav />
-                <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-                  <UserNav />
+          <div className="flex h-screen overflow-hidden">
+            <Sidebar />
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="flex h-14 items-center px-4">
+                  <MainNav />
+                  <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+                    <UserNav />
+                  </div>
                 </div>
-              </div>
-            </header>
-            <main className="flex-1">
-              <div className="container">{children}</div>
-            </main>
-            <Toaster />
+              </header>
+              <main className="flex-1 overflow-auto">
+                <div className="container py-6">{children}</div>
+              </main>
+            </div>
           </div>
+          <Toaster />
         </Providers>
       </body>
     </html>
