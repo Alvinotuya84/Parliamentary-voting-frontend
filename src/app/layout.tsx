@@ -34,11 +34,9 @@ export default function RootLayout({
             <Sidebar />
             <div className="flex flex-1 flex-col overflow-hidden">
               <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="flex h-14 items-center px-4">
+                <div className="px-4 flex h-14 items-center justify-between">
                   <MainNav />
-                  <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-                    <UserNav />
-                  </div>
+                  <UserNav />
                 </div>
               </header>
               <main className="flex-1 overflow-auto">
