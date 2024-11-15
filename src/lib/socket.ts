@@ -1,39 +1,50 @@
+// src/lib/socket.ts
 import { io, Socket } from "socket.io-client";
 import { siteConfig } from "@/config/site";
 
 class SocketService {
-  private static instance: Socket | null = null;
+  private static instance: SocketService;
+  private socket: Socket;
 
-  public static getSocket(): Socket {
-    if (!this.instance) {
-      this.instance = io(siteConfig.wsUrl, {
-        transports: ["websocket"],
-        autoConnect: true,
-      });
+  private constructor() {
+    this.socket = io(siteConfig.wsUrl, {
+      withCredentials: true,
+      transports: ["websocket"],
+      autoConnect: true,
+    });
 
-      // Global socket event handlers
-      this.instance.on("connect", () => {
-        console.log("Socket connected");
-      });
+    this.socket.on("connect", () => {
+      console.log("Socket connected:", this.socket.id);
+    });
 
-      this.instance.on("disconnect", () => {
-        console.log("Socket disconnected");
-      });
+    this.socket.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
 
-      this.instance.on("connect_error", (error) => {
-        console.error("Socket connection error:", error);
-      });
-    }
-
-    return this.instance;
+    this.socket.on("connect_error", (error) => {
+      console.error("Socket connection error:", error);
+    });
   }
 
-  public static disconnect(): void {
-    if (this.instance) {
-      this.instance.disconnect();
-      this.instance = null;
+  public static getInstance(): SocketService {
+    if (!SocketService.instance) {
+      SocketService.instance = new SocketService();
+    }
+    return SocketService.instance;
+  }
+
+  public getSocket(): Socket {
+    return this.socket;
+  }
+
+  public disconnect(): void {
+    if (this.socket) {
+      this.socket.disconnect();
     }
   }
 }
 
-export default SocketService;
+export default {
+  getSocket: () => SocketService.getInstance().getSocket(),
+  disconnect: () => SocketService.getInstance().disconnect(),
+};
